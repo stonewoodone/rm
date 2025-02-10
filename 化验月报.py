@@ -8,7 +8,7 @@ folder_path = "无人值守化验月报"
 all_dfs = []
 
 # 需要保留的列索引
-columns_to_keep = [1, 2, 3, 4, 5, 7, 10, 11, 12, 14]
+columns_to_keep = [0, 1, 2, 3, 4, 6, 9, 10, 11, 13]
 
 # 新的列名
 new_column_names = [
