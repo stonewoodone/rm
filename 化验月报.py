@@ -76,5 +76,106 @@ if all_dfs:
     # 导出到Excel文件
     final_df.to_excel("化验月报汇总.xlsx", index=False)
     print("汇总完成！文件已保存为'化验月报汇总.xlsx'")
+    
+    # 对同一供应商全称按照月度和年度，对发热量进行加权平均
+    # 首先，确保'化验日期'列的格式为'YYYY-MM'，并将其重命名为'报表月份'
+    final_df['报表月份'] = pd.to_datetime(final_df['化验日期']).dt.strftime('%Y-%m')
+    
+    # 创建一个新的Excel文件，添加多个工作表
+    writer = pd.ExcelWriter("化验月报汇总分类.xlsx", engine='xlsxwriter')
+    
+    # 对'报表月份'和'供应商全称'列进行分组，计算每个月份和供应商的加权平均发热量
+    weighted_average_heat = final_df.groupby(['报表月份', '供应商全称']).apply(
+        lambda x: pd.Series({
+            '加权平均发热量': (x['发热量'] * x['来煤量']).sum() / x['来煤量'].sum()
+        })
+    ).reset_index()
+    # 将加权平均发热量结果写入新的Excel工作表
+    weighted_average_heat.to_excel(writer, sheet_name='加权平均发热量', index=False)
+    
+    # 对'报表月份'和'供应商全称'列进行分组，计算每个月份和供应商的加权平均全水Mt
+    weighted_average_moisture = final_df.groupby(['报表月份', '供应商全称']).apply(
+        lambda x: pd.Series({
+            '加权平均全水Mt': (x['全水Mt'] * x['来煤量']).sum() / x['来煤量'].sum()
+        })
+    ).reset_index()
+    # 将加权平均全水Mt结果写入新的Excel工作表
+    weighted_average_moisture.to_excel(writer, sheet_name='加权平均全水Mt', index=False)
+    
+    # 对'报表月份'和'供应商全称'列进行分组，计算每个月份和供应商的加权平均全硫
+    weighted_average_sulfur = final_df.groupby(['报表月份', '供应商全称']).apply(
+        lambda x: pd.Series({
+            '加权平均全硫': (x['全硫'] * x['来煤量']).sum() / x['来煤量'].sum()
+        })
+    ).reset_index()
+    # 将加权平均全硫结果写入新的Excel工作表
+    weighted_average_sulfur.to_excel(writer, sheet_name='加权平均全硫', index=False)
+    
+    # 对'报表月份'和'供应商全称'列进行分组，计算每个月份和供应商的加权平均挥发份
+    weighted_average_volatile = final_df.groupby(['报表月份', '供应商全称']).apply(
+        lambda x: pd.Series({
+            '加权平均挥发份': (x['挥发份Vdaf'] * x['来煤量']).sum() / x['来煤量'].sum()
+        })
+    ).reset_index()
+    # 将加权平均挥发份结果写入新的Excel工作表
+    weighted_average_volatile.to_excel(writer, sheet_name='加权平均挥发份', index=False)
+    
+    # 对'报表月份'和'供应商全称'列进行分组，计算每个月份和供应商的加权平均灰份
+    weighted_average_ash = final_df.groupby(['报表月份', '供应商全称']).apply(
+        lambda x: pd.Series({
+            '加权平均灰份': (x['灰分空干基Aad'] * x['来煤量']).sum() / x['来煤量'].sum()
+        })
+    ).reset_index()
+    # 将加权平均灰份结果写入新的Excel工作表
+    weighted_average_ash.to_excel(writer, sheet_name='加权平均灰份', index=False)
+    
+    # 保存文件并关闭
+    writer.close()
+    print("分类汇总文件已保存为: 化验月报汇总分类.xlsx")
+    
+    # 打开现有的Excel文件
+    writer = pd.ExcelWriter("化验月报汇总分类.xlsx", engine='openpyxl', mode='a')
+    
+    # 对'供应商全称'列进行分组，计算累计加权平均发热量
+    cumulative_weighted_average_heat = final_df.groupby('供应商全称').apply(
+        lambda x: pd.Series({
+            '累计加权平均发热量': (x['发热量'] * x['来煤量']).sum() / x['来煤量'].sum()
+        })
+    ).reset_index()
+    # 将累计加权平均发热量结果写入新的工作表
+    cumulative_weighted_average_heat.to_excel(writer, sheet_name='累计加权平均发热量', index=False)
+    
+    # 对'供应商全称'列进行分组，计算累计加权平均全水Mt
+    cumulative_weighted_average_moisture = final_df.groupby('供应商全称').apply(
+        lambda x: pd.Series({
+            '累计加权平均全水Mt': (x['全水Mt'] * x['来煤量']).sum() / x['来煤量'].sum()
+        })
+    ).reset_index()
+    # 将累计加权平均全水Mt结果写入新的工作表
+    cumulative_weighted_average_moisture.to_excel(writer, sheet_name='累计加权平均全水Mt', index=False)
+    
+    # 对'供应商全称'列进行分组，计算累计加权平均全硫
+    cumulative_weighted_average_sulfur = final_df.groupby('供应商全称').apply(
+        lambda x: pd.Series({
+            '累计加权平均全硫': (x['全硫'] * x['来煤量']).sum() / x['来煤量'].sum()
+        })
+    ).reset_index()
+    # 将累计加权平均全硫结果写入新的工作表
+    cumulative_weighted_average_sulfur.to_excel(writer, sheet_name='累计加权平均全硫', index=False)
+    
+    # 对'供应商全称'列进行分组，计算累计加权平均挥发份
+    cumulative_weighted_average_volatile = final_df.groupby('供应商全称').apply(
+        lambda x: pd.Series({
+            '累计加权平均挥发份': (x['挥发份Vdaf'] * x['来煤量']).sum() / x['来煤量'].sum()
+        })
+    ).reset_index()
+    # 将累计加权平均挥发份结果写入新的工作表
+    cumulative_weighted_average_volatile.to_excel(writer, sheet_name='累计加权平均挥发份', index=False)
+    
+    # 保存文件并关闭
+    writer.close()
+    print("累计加权平均值已添加到: 化验月报汇总分类.xlsx")
 else:
     print("未找到可处理的文件！")
+
+
