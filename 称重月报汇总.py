@@ -52,6 +52,50 @@ if dfs:
         output_file = "称重月报汇总.xlsx"
         combined_df.to_excel(output_file, index=False)
         print(f"文件已合并并保存为: {output_file}")
+        
+        # 对不同供应商全称按月及按年进行分类汇总
+        # 首先，确保'报表月份'列的格式为'YYYY-MM'
+        combined_df['报表月份'] = pd.to_datetime(combined_df['报表月份']).dt.strftime('%Y-%m')
+        
+        # 对'报表月份'列进行分组，计算每个月份的供应量
+        monthly_supply = combined_df.groupby(['报表月份', '供应商全称'])['重量'].sum().reset_index()
+        
+        # 对'供应商全称'列进行分组，计算每个供应商的累计供应量
+        cumulative_supply = combined_df.groupby('供应商全称')['重量'].sum().reset_index()
+        
+        # 对'报表月份'列进行分组，计算每个月份的平均供应量
+        average_supply = combined_df.groupby(['报表月份', '供应商全称'])['重量'].mean().reset_index()
+        
+        # 对'报表月份'列进行分组，计算每个月份的最大供应量
+        max_supply = combined_df.groupby(['报表月份', '供应商全称'])['重量'].max().reset_index()
+        
+        # 对'报表月份'列进行分组，计算每个月份的最小供应量
+        min_supply = combined_df.groupby(['报表月份', '供应商全称'])['重量'].min().reset_index()
+        
+        # 创建一个新的Excel文件，添加多个工作表
+        writer = pd.ExcelWriter("称重月报汇总分类.xlsx", engine='xlsxwriter')
+        
+        # 将合并后的数据写入第一个工作表
+        combined_df.to_excel(writer, sheet_name='合并数据', index=False)
+        
+        # 将月度供应量写入第二个工作表
+        monthly_supply.to_excel(writer, sheet_name='月度供应量', index=False)
+        
+        # 将累计年度供应量写入第三个工作表
+        cumulative_supply.to_excel(writer, sheet_name='累计年度供应量', index=False)
+        
+        # 将平均供应量写入第四个工作表
+        average_supply.to_excel(writer, sheet_name='平均供应量', index=False)
+        
+        # 将最大供应量写入第五个工作表
+        max_supply.to_excel(writer, sheet_name='最大供应量', index=False)
+        
+        # 将最小供应量写入第六个工作表
+        min_supply.to_excel(writer, sheet_name='最小供应量', index=False)
+        
+        # 保存文件并关闭
+        writer.close()
+        print("分类汇总文件已保存为: 称重月报汇总分类.xlsx")
     except KeyError as e:
         print(f"错误：找不到列 {e}")
         print("请检查列名是否正确，当前可用的列名有：", combined_df.columns.tolist())
