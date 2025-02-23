@@ -73,8 +73,72 @@ if all_dfs:
     ]
     final_df = final_df[column_order]
     
-    # 导出到Excel文件
-    final_df.to_excel("化验月报汇总.xlsx", index=False)
+    # 添加年月字段，用于分组统计
+    final_df['统计月份'] = pd.to_datetime(final_df['化验日期']).dt.strftime('%Y-%m')
+    
+    # 定义需要计算加权平均的指标
+    weighted_columns = ['全水Mt', '全硫', '发热量', '挥发份Vdaf']
+    
+    # 创建月度加权平均统计函数
+    def weighted_average(group, value_column):
+        weights = group['来煤量']
+        values = group[value_column]
+        return (values * weights).sum() / weights.sum()
+    
+    # 计算月度加权平均
+    monthly_stats = []
+    for month in sorted(final_df['统计月份'].unique()):
+        month_data = final_df[final_df['统计月份'] == month]
+        stats = {'统计月份': month, '月度来煤量': month_data['来煤量'].sum()}
+        
+        # 计算每个指标的加权平均
+        for col in weighted_columns:
+            stats[f'{col}_加权平均'] = weighted_average(month_data, col)
+        
+        monthly_stats.append(stats)
+    
+    # 转换为DataFrame
+    monthly_stats_df = pd.DataFrame(monthly_stats)
+    
+    # 计算年度累计加权平均
+    total_stats = {
+        '统计月份': '年度累计',
+        '月度来煤量': final_df['来煤量'].sum()
+    }
+    
+    # 计算年度各指标加权平均
+    for col in weighted_columns:
+        total_stats[f'{col}_加权平均'] = weighted_average(final_df, col)
+    
+    # 将年度统计添加到月度统计中
+    monthly_stats_df = pd.concat([monthly_stats_df, pd.DataFrame([total_stats])], ignore_index=True)
+    
+    # 设置列的显示顺序
+    stats_columns = ['统计月份', '月度来煤量'] + [f'{col}_加权平均' for col in weighted_columns]
+    monthly_stats_df = monthly_stats_df[stats_columns]
+    
+    # 创建Excel写入器
+    writer = pd.ExcelWriter("化验月报汇总.xlsx", engine='xlsxwriter')
+    
+    # 写入原始数据
+    final_df[column_order].to_excel(writer, index=False, sheet_name='原始数据')
+    
+    # 写入统计数据
+    monthly_stats_df.to_excel(writer, index=False, sheet_name='月度统计')
+    
+    # 获取workbook和worksheet对象
+    workbook = writer.book
+    worksheet_stats = writer.sheets['月度统计']
+    
+    # 设置数字格式
+    num_format = workbook.add_format({'num_format': '0.00'})
+    
+    # 为统计数据添加数字格式
+    for col in range(2, len(stats_columns)):  # 跳过'统计月份'和'月度来煤量'列
+        worksheet_stats.set_column(col, col, None, num_format)
+    
+    # 保存文件
+    writer.close()
     print("汇总完成！文件已保存为'化验月报汇总.xlsx'")
     
     # 对同一供应商全称按照月度和年度，对发热量进行加权平均
