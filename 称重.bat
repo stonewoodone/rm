@@ -1,1 +1,1 @@
-python 称重月报汇总.py
+python cz.py
