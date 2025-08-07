@@ -117,6 +117,12 @@ if all_dfs:
     stats_columns = ['统计月份', '月度来煤量'] + [f'{col}_加权平均' for col in weighted_columns]
     monthly_stats_df = monthly_stats_df[stats_columns]
     
+    # 计算按公司名称的发热量加权平均
+    company_weighted_heat = final_df.groupby('公司名称').agg(
+        来煤总量=('来煤量', 'sum'),
+        加权平均发热量=('发热量', lambda x: weighted_average(final_df.loc[x.index], '发热量'))
+    ).reset_index()
+    
     # 创建Excel写入器
     writer = pd.ExcelWriter("化验月报汇总.xlsx", engine='xlsxwriter')
     
@@ -126,9 +132,13 @@ if all_dfs:
     # 写入统计数据
     monthly_stats_df.to_excel(writer, index=False, sheet_name='月度统计')
     
+    # 写入公司发热量加权平均数据
+    company_weighted_heat.to_excel(writer, index=False, sheet_name='公司发热量加权平均')
+    
     # 获取workbook和worksheet对象
     workbook = writer.book
     worksheet_stats = writer.sheets['月度统计']
+    worksheet_company = writer.sheets['公司发热量加权平均']
     
     # 设置数字格式
     num_format = workbook.add_format({'num_format': '0.00'})
@@ -136,6 +146,9 @@ if all_dfs:
     # 为统计数据添加数字格式
     for col in range(2, len(stats_columns)):  # 跳过'统计月份'和'月度来煤量'列
         worksheet_stats.set_column(col, col, None, num_format)
+    
+    # 为公司发热量加权平均数据添加数字格式
+    worksheet_company.set_column(2, 2, None, num_format)  # 加权平均发热量列
     
     # 保存文件
     writer.close()
@@ -225,15 +238,7 @@ if all_dfs:
     writer.close()
     print("累计加权平均值已添加到: 化验月报汇总分类.xlsx")
 
-    # 计算按公司名称的发热量加权平均
-    company_weighted_heat = final_df.groupby('公司名称').agg(
-        来煤总量=('来煤量', 'sum'),
-        加权平均发热量=('发热量', lambda x: weighted_avg(final_df.loc[x.index], '发热量'))
-    ).reset_index()
 
-    # 将结果写入新的Excel文件
-    company_weighted_heat.to_excel('公司发热量加权平均.xlsx', index=False)
-    print("已生成按公司名称的发热量加权平均统计，保存为：公司发热量加权平均.xlsx")
 else:
     print("未找到可处理的文件！")
 
