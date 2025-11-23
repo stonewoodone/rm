@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import re
 
 # 获取所有xls文件
 folder_path = "无人值守称重月报"
@@ -28,11 +29,11 @@ for file in excel_files:
         if '到厂重量（t）' in df.columns:
             df = df.rename(columns={'到厂重量（t）': '重量'})
             
-        # 添加供应商列（提取供应单位中括号前的部分）
+        # 添加供应商列（提取供应单位中括号前的部分，并清除右侧数字）
         df['供应商全称'] = df['供应单位'].apply(lambda x: 
-            str(x).split('（')[0].split('(')[0].strip() if pd.notnull(x) else '')
+            re.sub(r'\d+$', '', str(x).split('（')[0].split('(')[0]).strip() if pd.notnull(x) else '')
         #添加报表月份和供应商列
-        df['报表月份供应商'] = df['报表月份'] + '-' + df['供应商全称']
+        df['报表月份供应商'] = df['报表月份'] + '-' + df['供应单位']
         
         dfs.append(df)
         print(f"成功处理文件: {file}")
@@ -48,6 +49,27 @@ if dfs:
         selected_columns = ['序号', '报表月份', '供应单位', '供应商全称','报表月份供应商', '运输单位', '车数', '重量']
         combined_df = combined_df[selected_columns]
         
+        # 尝试从化验月报汇总中读取发热量数据
+        try:
+            # 读取化验月报汇总文件
+            hy_df = pd.read_excel("化验月报汇总.xlsx", sheet_name='原始数据')
+            
+            # 创建发热量查找字典，基于"报表月份供应商"字段
+            heat_lookup = hy_df.groupby('报表月份供应商')['发热量'].mean().to_dict()
+            
+            # 在称重数据中添加发热量字段
+            combined_df['发热量'] = combined_df['报表月份供应商'].map(heat_lookup)
+            
+            # 更新列顺序，将发热量字段添加进去
+            selected_columns = ['序号', '报表月份', '供应单位', '供应商全称','报表月份供应商', '运输单位', '车数', '重量', '发热量']
+            combined_df = combined_df[selected_columns]
+            
+            print("成功关联发热量数据")
+        except FileNotFoundError:
+            print("警告：未找到化验月报汇总.xlsx文件，无法关联发热量数据")
+        except Exception as e:
+            print(f"关联发热量数据时出错: {str(e)}")
+        
         # 保存合并后的文件
         output_file = "称重月报汇总.xlsx"
         combined_df.to_excel(output_file, index=False)
@@ -57,20 +79,50 @@ if dfs:
         # 首先，确保'报表月份'列的格式为'YYYY-MM'
         combined_df['报表月份'] = pd.to_datetime(combined_df['报表月份']).dt.strftime('%Y-%m')
         
-        # 对'报表月份'列进行分组，计算每个月份的供应量
-        monthly_supply = combined_df.groupby(['报表月份', '供应商全称'])['重量'].sum().reset_index()
+        # 定义加权平均函数
+        def weighted_average(values):
+            # 获取对应的重量数据
+            weights = combined_df.loc[values.index, '重量']
+            # 过滤掉NaN值
+            valid_mask = ~(values.isna() | weights.isna())
+            if valid_mask.sum() == 0:
+                return None
+            return (values[valid_mask] * weights[valid_mask]).sum() / weights[valid_mask].sum()
         
-        # 对'供应商全称'列进行分组，计算每个供应商的累计供应量
-        cumulative_supply = combined_df.groupby('供应商全称')['重量'].sum().reset_index()
+        # 对'报表月份'列进行分组，计算每个月份的供应量和加权平均发热量
+        monthly_supply = combined_df.groupby(['报表月份', '供应商全称']).agg({
+            '重量': 'sum',
+            '发热量': weighted_average
+        }).reset_index()
+        monthly_supply.columns = ['报表月份', '供应商全称', '重量', '加权平均发热量']
         
-        # 对'报表月份'列进行分组，计算每个月份的平均供应量
-        average_supply = combined_df.groupby(['报表月份', '供应商全称'])['重量'].mean().reset_index()
+        # 对'供应商全称'列进行分组，计算每个供应商的累计供应量和加权平均发热量
+        cumulative_supply = combined_df.groupby('供应商全称').agg({
+            '重量': 'sum',
+            '发热量': weighted_average
+        }).reset_index()
+        cumulative_supply.columns = ['供应商全称', '重量', '加权平均发热量']
         
-        # 对'报表月份'列进行分组，计算每个月份的最大供应量
-        max_supply = combined_df.groupby(['报表月份', '供应商全称'])['重量'].max().reset_index()
+        # 对'报表月份'列进行分组，计算每个月份的平均供应量和平均发热量
+        average_supply = combined_df.groupby(['报表月份', '供应商全称']).agg({
+            '重量': 'mean',
+            '发热量': 'mean'
+        }).reset_index()
+        average_supply.columns = ['报表月份', '供应商全称', '平均重量', '平均发热量']
         
-        # 对'报表月份'列进行分组，计算每个月份的最小供应量
-        min_supply = combined_df.groupby(['报表月份', '供应商全称'])['重量'].min().reset_index()
+        # 对'报表月份'列进行分组，计算每个月份的最大供应量和最大发热量
+        max_supply = combined_df.groupby(['报表月份', '供应商全称']).agg({
+            '重量': 'max',
+            '发热量': 'max'
+        }).reset_index()
+        max_supply.columns = ['报表月份', '供应商全称', '最大重量', '最大发热量']
+        
+        # 对'报表月份'列进行分组，计算每个月份的最小供应量和最小发热量
+        min_supply = combined_df.groupby(['报表月份', '供应商全称']).agg({
+            '重量': 'min',
+            '发热量': 'min'
+        }).reset_index()
+        min_supply.columns = ['报表月份', '供应商全称', '最小重量', '最小发热量']
         
         # 创建一个新的Excel文件，添加多个工作表
         writer = pd.ExcelWriter("称重月报汇总分类.xlsx", engine='xlsxwriter')

@@ -47,8 +47,8 @@ for filename in os.listdir(folder_path):
             df['供应商全称'] = df['供应商全称'].str.split('(').str[0]  # 处理英文括号
             #将化验日期转换为日期型,格式为'yyyy-mm-dd'
             df['化验日期'] = pd.to_datetime(df['化验日期'], format='%Y-%m-%d', errors='coerce')
-            #添加报表月份和供应商列，将化验日期和供应商全称合并
-            df['报表月份供应商'] = df['化验日期'].dt.strftime('%Y-%m') + '-' + df['供应商全称']
+            #添加报表月份和供应商列，将化验日期和供应单位合并
+            df['报表月份供应商'] = df['化验日期'].dt.strftime('%Y-%m') + '-' + df['公司名称']
             #df['报表月份供应商'] = df['化验日期'] + '-' + df['供应商全称']
             # 检查数据是否为空
             if df.empty:
