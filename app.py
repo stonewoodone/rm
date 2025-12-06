@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, Response, send_file
+from flask_cors import CORS # Import CORS
 import os
 import threading
 import queue
@@ -16,6 +17,7 @@ import hy
 
 app = Flask(__name__)
 app.secret_key = 'fuel_management_secret'
+CORS(app) # Enable CORS for all routes
 
 # Configuration
 UPLOAD_FOLDERS = {
@@ -170,5 +172,5 @@ if __name__ == '__main__':
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
     
-    print("Web Server Starting on http://127.0.0.1:5000")
-    app.run(debug=True, port=5000)
+    print("Web Server Starting on http://0.0.0.0:5000 (LAN access enabled)")
+    app.run(host='0.0.0.0', port=5000, debug=True)

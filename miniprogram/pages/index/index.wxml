@@ -1,0 +1,61 @@
+<view class="container">
+  <!-- Server Config -->
+  <view class="server-config">
+    <text>服务器地址:</text>
+    <input class="server-input" value="{{serverUrl}}" bindinput="onServerUrlInput" placeholder="例如 http://192.168.1.5:5000" />
+    <button size="mini" type="primary" bindtap="checkConnection">测试连接</button>
+  </view>
+
+  <!-- Tabs -->
+  <view class="tabs">
+    <view class="tab-item {{currentTab=='hy'?'active':''}}" bindtap="switchTab" data-tab="hy">化验月报</view>
+    <view class="tab-item {{currentTab=='cz'?'active':''}}" bindtap="switchTab" data-tab="cz">称重月报</view>
+  </view>
+
+  <!-- Content -->
+  <view class="content">
+    <view class="card">
+      <view class="card-header">
+        <text class="title">{{currentTab=='hy' ? '化验月报汇总' : '称重月报汇总'}}</text>
+        <text class="status {{running?'running':''}}">{{statusText}}</text>
+      </view>
+      
+      <view class="actions">
+        <!-- Upload -->
+        <button class="btn-action" type="default" bindtap="chooseAndUpload">
+          <icon type="search" size="18" color="#666"/> 从微信聊天记录导入
+        </button>
+        <!-- Run -->
+        <button class="btn-action" type="primary" bindtap="executeTask" disabled="{{running}}">
+          <icon type="success_no_circle" size="18" color="white"/> 执行汇总
+        </button>
+        <!-- Download -->
+        <button class="btn-action" type="warn" bindtap="downloadResult">
+          <icon type="download" size="18" color="white"/> 下载结果
+        </button>
+      </view>
+
+      <!-- Preview (Simple Text for now, or rich-text for tables) -->
+      <view class="preview-box">
+          <view class="preview-title">结果预览 (向左滑动查看更多)</view>
+          <scroll-view scroll-x="true" class="table-scroll">
+            <rich-text nodes="{{previewHtml}}"></rich-text>
+          </scroll-view>
+          <view wx:if="{{!previewHtml}}" class="no-data">暂无预览数据</view>
+      </view>
+    </view>
+
+    <!-- Logs -->
+    <view class="logs-card">
+      <view class="logs-header">
+        <text>实时日志</text>
+        <view bindtap="clearLogs" class="clear-btn">清除</view>
+      </view>
+      <scroll-view scroll-y="true" class="logs-scroll" scroll-top="{{scrollTop}}">
+        <block wx:for="{{logs}}" wx:key="index">
+          <view class="log-line">{{item}}</view>
+        </block>
+      </scroll-view>
+    </view>
+  </view>
+</view>

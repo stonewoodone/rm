@@ -1,0 +1,152 @@
+/** index.wxss */
+.container {
+  padding: 10px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.server-config {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+.server-input {
+  flex: 1;
+  background: #f1f5f9;
+  padding: 5px 10px;
+  margin: 0 10px;
+  border-radius: 4px;
+}
+
+.tabs {
+  display: flex;
+  margin-bottom: 15px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  font-size: 16px;
+  color: #64748b;
+  border-bottom: 3px solid transparent;
+}
+.tab-item.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  font-weight: bold;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 10px;
+}
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #1e293b;
+}
+.status {
+  font-size: 12px;
+  background: #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: #64748b;
+}
+.status.running {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.btn-action {
+  width: 100% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.preview-box {
+  margin-top: 10px;
+}
+.preview-title {
+  font-size: 14px;
+  color: #94a3b8;
+  margin-bottom: 5px;
+}
+.table-scroll {
+  width: 100%;
+  white-space: nowrap;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+.no-data {
+  text-align: center;
+  color: #cbd5e1;
+  padding: 20px;
+}
+
+/* Logs */
+.logs-card {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 15px;
+  color: #cbd5e1;
+}
+.logs-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+  border-bottom: 1px solid #334155;
+  padding-bottom: 5px;
+}
+.clear-btn {
+  color: #94a3b8;
+}
+.logs-scroll {
+  height: 200px;
+  font-family: monospace;
+  font-size: 12px;
+}
+.log-line {
+  margin-bottom: 4px;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+/* Rich Text Table Styling Override */
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.result-table th, .result-table td {
+  border: 1px solid #ddd;
+  padding: 5px;
+  font-size: 12px;
+}
