@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>燃料管理系统 - 智能数据处理</title>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <!-- DataTables & ColReorder -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.7.0/css/colReorder.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/colreorder/1.7.0/js/dataTables.colReorder.min.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-fire-alt"></i> 燃料管理智能系统</h1>
+            <p>自动化数据处理与报表生成中心</p>
+        </header>
+
+        <main>
+            <!-- 主任务标签页 -->
+            <div class="main-tabs">
+                <button class="main-tab-btn active" onclick="switchMainTab('hy')">
+                    <i class="fas fa-flask"></i> 化验月报汇总
+                    <span class="status-badge" id="status-hy">就绪</span>
+                </button>
+                <button class="main-tab-btn" onclick="switchMainTab('cz')">
+                    <i class="fas fa-balance-scale"></i> 称重月报汇总
+                    <span class="status-badge" id="status-cz">就绪</span>
+                </button>
+            </div>
+
+            <!-- 化验月报内容 -->
+            <div id="main-tab-hy" class="main-tab-content active">
+                <div class="action-bar">
+                    <div class="upload-area-compact" id="drop-zone-hy">
+                        <i class="fas fa-file-upload"></i> 点击/拖拽上传报表 <input type="file" id="file-hy" hidden
+                            accept=".xls,.xlsx">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="runTask('hy')"><i class="fas fa-play"></i> 执行</button>
+                        <button class="btn btn-info" onclick="previewResults('hy')"><i class="fas fa-eye"></i>
+                            预览</button>
+                        <a href="/download/hy" class="btn btn-secondary" target="_blank"><i class="fas fa-download"></i>
+                            下载</a>
+                    </div>
+                </div>
+                <div id="preview-hy" class="preview-container full-width"></div>
+            </div>
+
+            <!-- 称重月报内容 -->
+            <div id="main-tab-cz" class="main-tab-content">
+                <div class="action-bar">
+                    <div class="upload-area-compact" id="drop-zone-cz">
+                        <i class="fas fa-file-upload"></i> 点击/拖拽上传报表 <input type="file" id="file-cz" hidden
+                            accept=".xls,.xlsx">
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="runTask('cz')"><i class="fas fa-play"></i> 执行</button>
+                        <button class="btn btn-info" onclick="previewResults('cz')"><i class="fas fa-eye"></i>
+                            预览</button>
+                        <a href="/download/cz" class="btn btn-secondary" target="_blank"><i class="fas fa-download"></i>
+                            下载</a>
+                    </div>
+                </div>
+                <div id="preview-cz" class="preview-container full-width"></div>
+            </div>
+
+            <!-- 日志终端 -->
+            <div class="card log-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-terminal"></i> 实时运行日志</h2>
+                    <button class="btn-icon" onclick="clearLogs()" title="清除日志"><i
+                            class="fas fa-trash-alt"></i></button>
+                </div>
+                <div class="terminal" id="terminal">
+                    <div class="log-line system">>>> 系统已连接。等待任务指令...</div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 燃料管理系统 | Powered by Flask</p>
+        </footer>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
