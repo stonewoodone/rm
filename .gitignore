@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.DS_Store
+.env
+venv/
+*.xlsx
+*.xls
+无人值守化验月报/
+无人值守称重月报/
+*.log
